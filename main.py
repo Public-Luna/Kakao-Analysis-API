@@ -49,5 +49,32 @@ def test_router():
     }
   })
 
+# 예제
+# 텍스트 압축률 API
+# DESCRIPTION : 각 사람별로 분석, 텍스트 압축률 = 카톡 로그 텍스트 양 / 카톡 로그 갯수
+# 누가 쓸대없이 카톡을 띄어서 말하는지 알 수 있다.
+# TYPE : 막대 그래프
+# INPUT : 없음
+# OUTPUT : 텍스트 압축률
+@app.route('/api/test', methods=['GET'])
+def text_rate_router():
+  # 파일을 업로드한 유저인지 확인
+  if 'file_key' in request.args:
+    file_key = request.args['file_key'] 
+    df = pd.read_csv(os.path.join('store', file_key+'.csv'))
+    data =  df.groupby('User')[['Message']].sum().apply(lambda x: x.str.len()) / df.groupby('User').count()[['Message']]
+    
+    res = {
+      'title': '대화 압축률',
+      'labels': '',
+      'data': []
+    }
+    res['labels'] = data.index.values.tolist()
+    res['data'] = data.values.reshape((-1,)).tolist()
+
+  return jsonify({
+    "chart": res
+  })
+
 # app.run(host='0.0.0.0', debug=True, port=3000)
 app.run(host='127.0.0.1', debug=True, port=3000)
