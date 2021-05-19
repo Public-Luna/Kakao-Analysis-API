@@ -1,8 +1,8 @@
-from flask import Flask, jsonify, render_template, request, session
+from flask import Flask, jsonify, render_template, request
 from flask_cors import CORS
 import pandas as pd
-
-# 세션에 저장하긴 힘들어보임
+import os
+import uuid
 
 app = Flask(__name__, template_folder='.') # 서버 생성
 
@@ -14,14 +14,13 @@ app.secret_key = 'alsdkfjlasjfkl'
 def index_router():
   upload_file = request.files['file']
   df = pd.read_csv(upload_file)
-  # print(request.files)
-  # print(session['upload'])
-  # session['upload'] = True
-  # session['file'] = df.to_dict('list')
-  # f.save()
+  file_key = str(uuid.uuid1())
+  
+  df.to_csv(os.path.join('store', file_key+'.csv'))
+
   return jsonify({
     "file": {
-      
+      'file_key': file_key
     },
     "valid": True
   })
@@ -29,7 +28,12 @@ def index_router():
 @app.route('/api/test', methods=['GET'])
 def test_router():
   # return render_template('index.html')
-  print(pd.DataFrame(session['file']))
+  if 'file_key' in request.args:
+    file_key = request.args['file_key']
+    print(pd.read_csv(os.path.join('store', file_key+'.csv')))
+
+  # 데이터를 분석한 코드
+
   return jsonify({
     "chart": {
       "title": "비속어 사용",
